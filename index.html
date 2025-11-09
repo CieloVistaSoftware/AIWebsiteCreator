@@ -199,7 +199,7 @@
       width: 100%;
       min-height: 70vh;
       border: none;
-      background: white;
+      background: transparent;
     }
 
     .modal {
@@ -846,6 +846,14 @@ footer {
       `;
 
       preview.srcdoc = content;
+      
+      // Apply background color from CSS after preview loads
+      preview.onload = function() {
+        const bgMatch = css.match(/body\s*{[^}]*background[^:]*:\s*([^;}\n]+)/i);
+        if (bgMatch && bgMatch[1]) {
+          setPreviewBackground(preview, bgMatch[1].trim());
+        }
+      };
     }
 
     function switchTab(tab) {
@@ -1216,6 +1224,31 @@ ${jsEditor.value}
         updatePreview();
         closeModal('snippets');
         alert('✅ Snippet inserted!');
+      }
+    }
+
+    // Helper function to set preview iframe background color
+    function setPreviewBackground(iframe, color) {
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!doc) return;
+        
+        // Ensure head exists
+        if (!doc.head) {
+          const head = doc.createElement('head');
+          doc.documentElement.insertBefore(head, doc.body);
+        }
+        
+        // Insert or update style element for background color
+        let styleEl = doc.getElementById('preview-bg-style');
+        if (!styleEl) {
+          styleEl = doc.createElement('style');
+          styleEl.id = 'preview-bg-style';
+          doc.head.appendChild(styleEl);
+        }
+        styleEl.textContent = `body { background: ${color} !important; }`;
+      } catch (e) {
+        // Silently fail if iframe is not accessible
       }
     }
 
