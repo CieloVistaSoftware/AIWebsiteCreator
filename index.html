@@ -199,7 +199,7 @@
       width: 100%;
       min-height: 70vh;
       border: none;
-      background: white;
+      background: transparent;
     }
 
     .modal {
@@ -848,6 +848,31 @@ footer {
       preview.srcdoc = content;
     }
 
+    function setPreviewBackground(iframe, color) {
+      if (!iframe) return;
+      
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!doc) return;
+        
+        // Ensure body element exists
+        if (!doc.body) {
+          // Wait for iframe to load if body doesn't exist yet
+          iframe.addEventListener('load', () => {
+            const loadedDoc = iframe.contentDocument || iframe.contentWindow?.document;
+            if (loadedDoc?.body) {
+              loadedDoc.body.style.backgroundColor = color;
+            }
+          }, { once: true });
+        } else {
+          doc.body.style.backgroundColor = color;
+        }
+      } catch (e) {
+        // Silently fail if we can't access the iframe (cross-origin, etc.)
+        return;
+      }
+    }
+
     function switchTab(tab) {
       currentTab = tab;
       const tabs = document.querySelectorAll('.tab');
@@ -977,6 +1002,12 @@ footer {
       
       addToHistory('css');
       updatePreview();
+      
+      // Also directly set the preview background to ensure it applies
+      setTimeout(() => {
+        setPreviewBackground(preview, colors.primary);
+      }, 100);
+      
       closeModal('tools');
       alert('✅ Color scheme applied!');
     }
