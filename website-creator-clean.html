@@ -198,7 +198,7 @@
       width: 100%;
       min-height: 70vh;
       border: none;
-      background: white;
+      background: transparent;
     }
 
     .modal {
@@ -1220,6 +1220,51 @@ ${jsEditor.value}
 
     // Initialize on load
     init();
+  </script>
+  <script>
+    // Helper to apply background color to preview iframe body
+    function setPreviewBackground(iframe, color) {
+      if (!iframe || !color) return;
+      try {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (iframeDoc && iframeDoc.body) {
+          iframeDoc.body.style.backgroundColor = color;
+        }
+      } catch (e) {
+        // Cross-origin or access denied - silently ignore
+      }
+    }
+
+    (function() {
+      const previewIframe = document.getElementById('preview') || document.querySelector('iframe');
+      if (!previewIframe) return;
+
+      // Apply on iframe load
+      previewIframe.addEventListener('load', function() {
+        const colorInput = document.getElementById('bg-color') || 
+                          document.querySelector('.bg-color-input') || 
+                          document.querySelector('input[type="color"]');
+        if (colorInput && colorInput.value) {
+          setPreviewBackground(previewIframe, colorInput.value);
+        }
+      });
+
+      // Apply on color input change
+      const colorInputs = [
+        document.getElementById('bg-color'),
+        ...document.querySelectorAll('.bg-color-input'),
+        ...document.querySelectorAll('input[type="color"]')
+      ].filter(Boolean);
+
+      colorInputs.forEach(function(input) {
+        input.addEventListener('change', function() {
+          setPreviewBackground(previewIframe, input.value);
+        });
+        input.addEventListener('input', function() {
+          setPreviewBackground(previewIframe, input.value);
+        });
+      });
+    })();
   </script>
 </body>
 </html>
